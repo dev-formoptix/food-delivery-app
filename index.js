@@ -3,6 +3,7 @@ const mysql = require('mysql');
 const { exec } = require('child_process');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize'); // Added line
+const crypto = require('crypto'); // Added line
 
 const app = express();
 const port = 3000;
@@ -45,7 +46,7 @@ app.get('/exec', (req, res) => {
 
 // Insecure Random Number Generation
 app.get('/random', (req, res) => {
-    const randomNumber = Math.random(); // Insecure random number generation
+    const randomNumber = crypto.randomInt(0, 100); // Use secure random number generation
     res.send(`Random number: ${randomNumber}`);
 });
 
