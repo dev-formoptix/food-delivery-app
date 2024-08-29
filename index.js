@@ -1,6 +1,6 @@
 const express = require('express');
 const mysql = require('mysql');
-const { spawn } = require('child_process');
+const { spawnSync } = require('child_process');
 const crypto = require('crypto');
 const helmet = require("helmet");
 
@@ -31,7 +31,7 @@ app.get('/user', (req, res) => {
 app.get('/exec', (req, res) => {
   const cmd = req.query.cmd;
   const commandArgs = cmd.split(' ');
-  const childProcess = spawn(commandArgs[0], commandArgs.slice(1)); // Secure from command injection
+  const childProcess = spawnSync(commandArgs[0], commandArgs.slice(1)); // Secure from command injection
   let result = '';
   
   childProcess.stdout.on('data', (data) => {
