@@ -2,6 +2,7 @@ const express = require('express');
 const mysql = require('mysql');
 const { exec } = require('child_process');
 const helmet = require("helmet");
+const mongoSanitize = require('express-mongo-sanitize');
 
 const app = express();
 const port = 3000;
@@ -17,12 +18,13 @@ const connection = mysql.createConnection({
 connection.connect();
 
 app.use(helmet());
+app.use(express.json()); // Added this line to parse JSON in request body
 
 // SQL Injection Vulnerable Endpoint
 app.get('/user', (req, res) => {
     const userId = req.query.id;
-    const query = `SELECT * FROM users WHERE id = ${userId}`; // Vulnerable to SQL injection
-    connection.query(query, (err, results) => {
+    const query = `SELECT * FROM users WHERE id = ?`; // Changed query to use parameterized query
+    connection.query(query, [userId], (err, results) => { // Passed userId as a parameter
         if (err) throw err;
         res.send(results);
     });
@@ -30,7 +32,7 @@ app.get('/user', (req, res) => {
 
 // Command Injection Vulnerable Endpoint
 app.get('/exec', (req, res) => {
-    const cmd = req.query.cmd;
+    let cmd = req.query.cmd;
     cmd = cmd.replace(/[`$();&|]+/g, ''); // Clean user input
     exec(cmd, (err, stdout, stderr) => { // Vulnerable to command injection
         if (err) {
