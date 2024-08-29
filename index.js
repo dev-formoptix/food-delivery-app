@@ -1,6 +1,7 @@
 const express = require('express');
 const mysql = require('mysql');
 const { exec } = require('child_process');
+const helmet = require("helmet");
 
 const app = express();
 const port = 3000;
@@ -14,6 +15,8 @@ const connection = mysql.createConnection({
 });
 
 connection.connect();
+
+app.use(helmet());
 
 // SQL Injection Vulnerable Endpoint
 app.get('/user', (req, res) => {
