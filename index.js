@@ -1,6 +1,7 @@
 const express = require('express');
 const mysql = require('mysql');
-const { exec } = require('child_process');
+const { execFileSync } = require('child_process');
+const shellQuote = require('shell-quote');
 
 const app = express();
 const port = 3000;
@@ -28,13 +29,8 @@ app.get('/user', (req, res) => {
 // Command Injection Vulnerable Endpoint
 app.get('/exec', (req, res) => {
     const cmd = req.query.cmd;
-    exec(cmd, (err, stdout, stderr) => { // Vulnerable to command injection
-        if (err) {
-            res.send(`Error: ${stderr}`);
-            return;
-        }
-        res.send(`Output: ${stdout}`);
-    });
+    const parsedCmd = shellQuote.parse(cmd);
+    execFileSync(parsedCmd[0], parsedCmd.slice(1), { stdio: 'inherit' }); // Safe command execution
 });
 
 // Insecure Random Number Generation
