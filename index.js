@@ -1,6 +1,9 @@
 const express = require('express');
 const mysql = require('mysql');
 const { exec } = require('child_process');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize'); // Added line
+const crypto = require('crypto'); // Added line
 
 const app = express();
 const port = 3000;
@@ -10,10 +13,13 @@ const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: 'passwordd',
-    database: 'test' 
+    database: 'test'
 });
 
 connection.connect();
+
+app.use(helmet()); // Use Helmet library
+app.use(mongoSanitize()); // Added line
 
 // SQL Injection Vulnerable Endpoint
 app.get('/user', (req, res) => {
@@ -28,7 +34,8 @@ app.get('/user', (req, res) => {
 // Command Injection Vulnerable Endpoint
 app.get('/exec', (req, res) => {
     const cmd = req.query.cmd;
-    exec(cmd, (err, stdout, stderr) => { // Vulnerable to command injection
+    const cleanedCmd = cmd.replace(/[`$();&|]+/g, '') // Clean user-provided data
+    exec(cleanedCmd, (err, stdout, stderr) => { // Vulnerable to command injection
         if (err) {
             res.send(`Error: ${stderr}`);
             return;
